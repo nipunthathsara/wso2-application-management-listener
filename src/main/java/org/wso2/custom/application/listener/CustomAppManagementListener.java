@@ -43,7 +43,7 @@ public class CustomAppManagementListener extends AbstractApplicationMgtListener 
             throws IdentityApplicationManagementException {
         // Get the inbound authentication basic configurations from the received SP object.
         InboundAuthenticationRequestConfig[]  configs = serviceProvider.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
-        String inboundAuthKey;
+        String inboundAuthKey = null;
         OAuthConsumerAppDTO app;
         // Iterate to check if SP has oauth2 configs. if so, get the client key.
         for (InboundAuthenticationRequestConfig config : configs) {
@@ -60,7 +60,8 @@ public class CustomAppManagementListener extends AbstractApplicationMgtListener 
                 oAuthAdminService.updateConsumerApplication(app);
             } catch (IdentityOAuthAdminException e) {
                 log.error("Error while obtaining/updating oauth app data for consumer key : " + inboundAuthKey);
-                throw new IdentityApplicationManagementException;
+                throw new IdentityApplicationManagementException("Error while obtaining/updating oauth app data. SP : "
+                        + serviceProvider.getApplicationName(), e);
             }
         }
         log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
