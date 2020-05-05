@@ -21,33 +21,48 @@ package org.wso2.custom.application.listener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
+import org.wso2.carbon.identity.oauth.IdentityOAuthAdminException;
+import org.wso2.carbon.identity.oauth.OAuthAdminServiceImpl;
+import org.wso2.carbon.identity.oauth.dto.OAuthConsumerAppDTO;
 
 public class CustomAppManagementListener extends AbstractApplicationMgtListener {
 
     private static Log log = LogFactory.getLog(CustomAppManagementListener.class);
+    private static OAuthAdminServiceImpl oAuthAdminService = new OAuthAdminServiceImpl();
+    public static final String OAUTH2 = "oauth2";
 
     @Override
     public int getDefaultOrderId() {
         return 99;
     }
 
-//    @Override
-//    public boolean doPreCreateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
-//            throws IdentityApplicationManagementException {
-//        log.info("**************************************************************");
-//        return true;
-//    }
-//
-//    @Override
-//    public void onPreCreateInbound(ServiceProvider serviceProvider, boolean isUpdate) throws
-//            IdentityApplicationManagementException {
-//        log.info("###########################");
-//    }
-
     public boolean doPreUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
             throws IdentityApplicationManagementException {
+        // Get the inbound authentication basic configurations from the received SP object.
+        InboundAuthenticationRequestConfig[]  configs = serviceProvider.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
+        String inboundAuthKey;
+        OAuthConsumerAppDTO app;
+        // Iterate to check if SP has oauth2 configs. if so, get the client key.
+        for (InboundAuthenticationRequestConfig config : configs) {
+            if (OAUTH2.equals(config.getInboundAuthType())) {
+                inboundAuthKey = config.getInboundAuthKey();
+                break;
+            }
+        }
+        // Update the Oauth app to Bypass the client credentials.
+        if (inboundAuthKey != null) {
+            try {
+                app = oAuthAdminService.getOAuthApplicationData(inboundAuthKey);
+                app.setBypassClientCredentials(true);
+                oAuthAdminService.updateConsumerApplication(app);
+            } catch (IdentityOAuthAdminException e) {
+                log.error("Error while obtaining/updating oauth app data for consumer key : " + inboundAuthKey);
+                throw new IdentityApplicationManagementException;
+            }
+        }
         log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
         return true;
     }

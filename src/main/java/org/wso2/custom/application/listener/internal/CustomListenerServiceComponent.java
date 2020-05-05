@@ -22,10 +22,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.*;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
+import org.wso2.carbon.identity.oauth.OAuthAdminServiceImpl;
 import org.wso2.custom.application.listener.CustomAppManagementListener;
 
 @Component(
@@ -36,6 +35,7 @@ public class CustomListenerServiceComponent {
 
     private static Log log = LogFactory.getLog(CustomListenerServiceComponent.class);
     private static BundleContext bundleContext;
+//    private static OAuthAdminServiceImpl oAuthAdminService = null;
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -56,4 +56,15 @@ public class CustomListenerServiceComponent {
         }
     }
 
+//    @Reference(
+//            name = "identity.oauth.component",
+//            service = OAuthAdminServiceImpl.class,
+//            cardinality = ReferenceCardinality.MANDATORY,
+//            policy = ReferencePolicy.DYNAMIC,
+//            unbind = "unsetOauthAdminService"
+//    )
+//    protected void setOauthAdminService(OAuthAdminServiceImpl oauthAdminService) {
+//
+//        oAuthAdminService = oauthAdminService;
+//    }
 }
